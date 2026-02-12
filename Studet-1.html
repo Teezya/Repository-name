@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <title>Student Toolkit</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    h2 { margin-top: 30px; }
+    .module { border: 1px solid #ccc; padding: 15px; margin-bottom: 20px; }
+    .error { color: red; }
+    ul { list-style-type: none; padding: 0; }
+    li { margin: 5px 0; }
+    .done { text-decoration: line-through; color: gray; }
+    button { margin-left: 5px; }
+  </style>
+</head>
+<body>
+  <h1>Student Toolkit</h1>
+
+  <!-- Модуль A: Калькулятор оценок -->
+  <div class="module">
+    <h2>Модуль A. Калькулятор оценок</h2>
+    <input type="text" id="gradesInput" placeholder="Введите оценки через запятую">
+    <button onclick="calculateGrades()">Посчитать</button>
+    <div id="gradesResult"></div>
+  </div>
+
+  <!-- Модуль B: Конвертер температуры -->
+  <div class="module">
+    <h2>Модуль B. Конвертер температуры</h2>
+    <input type="number" id="tempInput" placeholder="Введите число">
+    <select id="mode">
+      <option value="CtoF">C = F</option>
+      <option value="FtoC">F = C</option>
+    </select>
+    <button onclick="convertTemp()">Конвертировать</button>
+    <div id="tempResult"></div>
+  </div>
+
+  <!-- Модуль C: ToDo-список -->
+  <div class="module">
+    <h2>Модуль C. ToDo-список</h2>
+    <input type="text" id="taskInput" placeholder="Введите задачу">
+    <button onclick="addTask()">Добавить</button>
+    <ul id="taskList"></ul>
+  </div>
+
+  <script>
+    // --- Модуль A ---
+    function calculateGrades() {
+      const input = document.getElementById("gradesInput").value.trim();
+      const resultDiv = document.getElementById("gradesResult");
+      resultDiv.innerHTML = "";
+
+      if (!input) {
+        resultDiv.innerHTML = "<p class='error'>Введите оценки!</p>";
+        return;
+      }
+
+      const grades = input.split(",").map(g => g.trim()).map(Number);
+      if (grades.some(isNaN)) {
+        resultDiv.innerHTML = "<p class='error'>Ошибка: неверные данные.</p>";
+        return;
+      }
+
+      const sum = grades.reduce((a, b) => a + b, 0);
+      const avg = (sum / grades.length).toFixed(2);
+      const max = Math.max(...grades);
+      const min = Math.min(...grades);
+
+      resultDiv.innerHTML = `
+        <p>Средний балл: ${avg}</p>
+        <p>Максимальная: ${max}</p>
+        <p>Минимальная: ${min}</p>
+        <p>Количество оценок: ${grades.length}</p>
+      `;
+    }
+
+    // --- Модуль B ---
+    function convertTemp() {
+      const value = parseFloat(document.getElementById("tempInput").value);
+      const mode = document.getElementById("mode").value;
+      const resultDiv = document.getElementById("tempResult");
+
+      if (isNaN(value)) {
+        resultDiv.innerHTML = "<p class='error'>Введите число!</p>";
+        return;
+      }
+
+      let result;
+      if (mode === "CtoF") {
+        result = (value * 9/5 + 32).toFixed(2) + " °F";
+      } else {
+        result = ((value - 32) * 5/9).toFixed(2) + " °C";
+      }
+      resultDiv.innerHTML = `<p>Результат: ${result}</p>`;
+    }
+
+    // --- Модуль C ---
+    let tasks = JSON.parse(localStorage.getItem("tasks")) || [];
+
+    function renderTasks() {
+      const list = document.getElementById("taskList");
+      list.innerHTML = "";
+      tasks.forEach((task, index) => {
+        const li = document.createElement("li");
+        li.textContent = task.text;
+        if (task.done) li.classList.add("done");
+
+        const doneBtn = document.createElement("button");
+        doneBtn.textContent = "✅";
+        doneBtn.onclick = () => toggleTask(index);
+
+        const delBtn = document.createElement("button");
+        delBtn.textContent = "❌";
+        delBtn.onclick = () => deleteTask(index);
+
+        li.appendChild(doneBtn);
+        li.appendChild(delBtn);
+        list.appendChild(li);
+      });
+    }
+
+    function addTask() {
+      const input = document.getElementById("taskInput");
+      const text = input.value.trim();
+      if (!text) return;
+      tasks.push({ text, done: false });
+      input.value = "";
+      saveTasks();
+      renderTasks();
+    }
+
+    function toggleTask(index) {
+      tasks[index].done = !tasks[index].done;
+      saveTasks();
+      renderTasks();
+    }
+
+    function deleteTask(index) {
+      tasks.splice(index, 1);
+      saveTasks();
+      renderTasks();
+    }
+
+    function saveTasks() {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    }
+
+    // Восстановление при загрузке
+    renderTasks();
+  </script>
+</body>
+</html>
