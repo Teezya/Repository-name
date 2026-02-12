@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<!-- saved from url=(0091)file:///C:/Users/User/Downloads/%D0%91%D0%B8%D0%B1%D0%BB%D0%BE%D1%82%D0%B5%D0%BA%D0%B0.html -->
+<html lang="ru"><head><meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+  
+  <title>Библиотека книг</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; }
+    input, select, button { margin: 5px; }
+    table { border-collapse: collapse; width: 100%; margin-top: 15px; }
+    th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+    th { background: #f0f0f0; }
+  </style>
+</head>
+<body>
+  <h1>Библиотека книг</h1>
+
+  <!-- Форма добавления/редактирования -->
+  <div>
+    <input id="title" placeholder="Название">
+    <input id="author" placeholder="Автор">
+    <input id="year" type="number" placeholder="Год">
+    <select id="status">
+      <option value="в наличии">В наличии</option>
+      <option value="выдана">Выдана</option>
+    </select>
+    <button onclick="addBook()">Добавить</button>
+  </div>
+
+  <!-- Поиск и фильтр -->
+  <div>
+    <input id="search" placeholder="Поиск по названию/автору" oninput="renderBooks()">
+    <select id="filter" onchange="renderBooks()">
+      <option value="all">Все</option>
+      <option value="в наличии">В наличии</option>
+      <option value="выдана">Выдана</option>
+    </select>
+  </div>
+
+  <!-- Таблица -->
+  <table>
+    <thead>
+      <tr>
+        <th>Название</th>
+        <th>Автор</th>
+        <th>Год</th>
+        <th>Статус</th>
+        <th>Действия</th>
+      </tr>
+    </thead>
+    <tbody id="bookList"><tr>
+            <td>Унесенные ветром</td>
+            <td>Маргарет Митчелл</td>
+            <td>1936</td>
+            <td>выдана</td>
+            <td>
+              <button onclick="editBook(0)">Редактировать</button>
+              <button onclick="deleteBook(0)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Война и Мир</td>
+            <td>Лев Толстой</td>
+            <td>1867</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(1)">Редактировать</button>
+              <button onclick="deleteBook(1)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Евгений Онегин</td>
+            <td>Александр Пушкин</td>
+            <td>1833</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(2)">Редактировать</button>
+              <button onclick="deleteBook(2)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Маленький принц</td>
+            <td>Антуан де Сент-Экзюпери</td>
+            <td>1943</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(3)">Редактировать</button>
+              <button onclick="deleteBook(3)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Шинель</td>
+            <td>Николай Гоголь</td>
+            <td>1843</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(4)">Редактировать</button>
+              <button onclick="deleteBook(4)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Юмористические рассказы</td>
+            <td>Антон Чехов</td>
+            <td>1885</td>
+            <td>выдана</td>
+            <td>
+              <button onclick="editBook(5)">Редактировать</button>
+              <button onclick="deleteBook(5)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Толстый и Тонкий</td>
+            <td>Антон Чехов</td>
+            <td>1883</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(6)">Редактировать</button>
+              <button onclick="deleteBook(6)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Хамелеон</td>
+            <td>Антон Чехов</td>
+            <td>1884</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(7)">Редактировать</button>
+              <button onclick="deleteBook(7)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Анна Каренина</td>
+            <td>Лев Толстой</td>
+            <td>1878</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(8)">Редактировать</button>
+              <button onclick="deleteBook(8)">Удалить</button>
+            </td>
+          </tr><tr>
+            <td>Гордость и предубеждение</td>
+            <td>Джейн Остин</td>
+            <td>1813</td>
+            <td>в наличии</td>
+            <td>
+              <button onclick="editBook(9)">Редактировать</button>
+              <button onclick="deleteBook(9)">Удалить</button>
+            </td>
+          </tr></tbody>
+  </table>
+
+  <script>
+    let books = JSON.parse(localStorage.getItem("books")) || [];
+    let editIndex = null;
+
+    function saveBooks() {
+      localStorage.setItem("books", JSON.stringify(books));
+    }
+
+    function addBook() {
+      const title = document.getElementById("title").value.trim();
+      const author = document.getElementById("author").value.trim();
+      const year = document.getElementById("year").value;
+      const status = document.getElementById("status").value;
+
+      if (!title || !author || !year) return alert("Заполните все поля!");
+
+      if (editIndex !== null) {
+        books[editIndex] = { title, author, year, status };
+        editIndex = null;
+      } else {
+        books.push({ title, author, year, status });
+      }
+
+      saveBooks();
+      clearForm();
+      renderBooks();
+    }
+
+    function clearForm() {
+      document.getElementById("title").value = "";
+      document.getElementById("author").value = "";
+      document.getElementById("year").value = "";
+      document.getElementById("status").value = "в наличии";
+    }
+
+    function renderBooks() {
+      const list = document.getElementById("bookList");
+      list.innerHTML = "";
+
+      const search = document.getElementById("search").value.toLowerCase();
+      const filter = document.getElementById("filter").value;
+
+      books
+        .filter(b => 
+          (b.title.toLowerCase().includes(search) || b.author.toLowerCase().includes(search)) &&
+          (filter === "all" || b.status === filter)
+        )
+        .forEach((book, i) => {
+          const row = document.createElement("tr");
+          row.innerHTML = `
+            <td>${book.title}</td>
+            <td>${book.author}</td>
+            <td>${book.year}</td>
+            <td>${book.status}</td>
+            <td>
+              <button onclick="editBook(${i})">Редактировать</button>
+              <button onclick="deleteBook(${i})">Удалить</button>
+            </td>
+          `;
+          list.appendChild(row);
+        });
+    }
+
+    function editBook(index) {
+      const book = books[index];
+      document.getElementById("title").value = book.title;
+      document.getElementById("author").value = book.author;
+      document.getElementById("year").value = book.year;
+      document.getElementById("status").value = book.status;
+      editIndex = index;
+    }
+
+    function deleteBook(index) {
+      books.splice(index, 1);
+      saveBooks();
+      renderBooks();
+    }
+
+    renderBooks();
+  </script>
+
+
+</body></html>
